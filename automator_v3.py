@@ -131,32 +131,30 @@ def save(anime, song):
             if e.errno != errno.EEXIST:
                 raise
     command = [
-        '"%s"' % config['ffmpeg'],
-        "-y",
+        config['ffmpeg'],
+        '-y',
         '-nostats',
-        "-i", song['examples'][format],
+        '-i', song['examples'][format],
     ]
     audioFlags = [
-        "-c:a", "copy",
-        "-vn",
-        "-b:a", "320k",
-        "-ac", "2"
+        '-c:a', 'copy',
+        '-vn',
+        '-b:a', '320k',
+        '-ac', '2'
     ]
     if (not format == 'mp3'):
-        audioFlags[1] = "libmp3lame"
+        audioFlags[1] = 'libmp3lame'
     metaFlags = [
         "-map_metadata", "-1",
-        "-metadata", 'title="%s"' % song['name'],
-        "-metadata", 'artist="%s"' % song['artist'],
-        "-metadata", 'track="%d"' % song['number'],
-        "-metadata", 'disc="%d"' % song['type'],
-        "-metadata", 'genre="%s"' % genre,
-        "-metadata", 'album="%s"' % anime['name'],
-        '"%s"' % outputPath
+        "-metadata", 'title=%s' % song['name'],
+        "-metadata", 'artist=%s' % song['artist'],
+        "-metadata", 'track=%d' % song['number'],
+        "-metadata", 'disc=%d' % song['type'],
+        "-metadata", 'genre=%s' % genre,
+        "-metadata", 'album=%s' % anime['name'],
+        outputPath
     ]
-    print(metaFlags)
-    proc = u' '.join(command + audioFlags + metaFlags)
-    subprocess.call(proc.encode(sys.getfilesystemencoding(), errors='ignore'))
+    subprocess.call(command + audioFlags + metaFlags)
     return
 
 
