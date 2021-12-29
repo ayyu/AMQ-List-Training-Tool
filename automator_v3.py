@@ -22,21 +22,21 @@ def update_anime_lists(driver, anilist="", kitsu="", mal=""):
     driver.execute_script('document.getElementById("mpNewsContainer").innerHTML = "Updating AniList...";')
     status = driver.find_element_by_id("mpNewsContainer")
     driver.execute_script("""new Listener("anime list update result", function (result) {
-		if (result.success) {
-			document.getElementById("mpNewsContainer").innerHTML = "Updated Successful: " + result.message;
-		} else {
-			document.getElementById("mpNewsContainer").innerHTML = "Update Unsuccessful: " + result.message;
-		}
+        if (result.success) {
+            document.getElementById("mpNewsContainer").innerHTML = "Updated Successful: " + result.message;
+        } else {
+            document.getElementById("mpNewsContainer").innerHTML = "Update Unsuccessful: " + result.message;
+        }
     }).bindListener()""")
     driver.execute_script("""
     socket.sendCommand({
-		type: "library",
-		command: "update anime list",
-		data: {
-			newUsername: arguments[0],
-			listType: 'ANILIST'
-		}
-	});""", anilist)
+        type: "library",
+        command: "update anime list",
+        data: {
+            newUsername: arguments[0],
+            listType: 'ANILIST'
+        }
+    });""", anilist)
     while True:
         if status.text != "Updating AniList...":
             break
@@ -45,13 +45,13 @@ def update_anime_lists(driver, anilist="", kitsu="", mal=""):
     driver.execute_script('document.getElementById("mpNewsContainer").innerHTML = "Updating Kitsu...";')
     driver.execute_script("""
     socket.sendCommand({
-		type: "library",
-		command: "update anime list",
-		data: {
-			newUsername: arguments[0],
-			listType: 'KITSU'
-		}
-	});""", kitsu)
+        type: "library",
+        command: "update anime list",
+        data: {
+            newUsername: arguments[0],
+            listType: 'KITSU'
+        }
+    });""", kitsu)
     while True:
         if status.text != "Updating Kitsu...":
             break
@@ -60,13 +60,13 @@ def update_anime_lists(driver, anilist="", kitsu="", mal=""):
     driver.execute_script('document.getElementById("mpNewsContainer").innerHTML = "Updating MAL...";')
     driver.execute_script("""
     socket.sendCommand({
-		type: "library",
-		command: "update anime list",
-		data: {
-			newUsername: arguments[0],
-			listType: 'MAL'
-		}
-	});""", mal)
+        type: "library",
+        command: "update anime list",
+        data: {
+            newUsername: arguments[0],
+            listType: 'MAL'
+        }
+    });""", mal)
     while True:
         if status.text != "Updating Kitsu...":
             break
@@ -136,6 +136,10 @@ def main():
         for song in songs:
             save(anime, song)
 
+# workaround to avoid utf8/ascii problems
+def sys_encode(input):
+    return input.encode(sys.getfilesystemencoding())
+
 def save(anime, song):
     format = ""
     for key in ['mp3', '480', '720']:
@@ -177,9 +181,9 @@ def save(anime, song):
         "-metadata", 'album="%s"' % anime['name'],
         '"%s"' % outputPath
     ]
-    # workaround to avoid utf8/ascii problems
-    subprocess.call(" ".join(command + audioFlags + metaFlags).encode(sys.getfilesystemencoding()))
+    subprocess.call(sys_encode(" ".join(command + audioFlags + metaFlags)))
     return
+
 
 def build_output_path(anime, song):
     forbidden_chars = re.compile(r"<|>|:|\"|\||\?|\*|&|\^|\$|" + '\0')
@@ -193,11 +197,12 @@ def build_output_path(anime, song):
         'songArtist': song['artist'],
         'ext': ext
     }
-    tokens = {k: v.encode(sys.getfilesystemencoding()) for k, v in tokens.iteritems()}
+    tokens = {k: sys_encode(v) for k, v in tokens.iteritems()}
     filename = config['output']['filename'].format(**tokens)
     filename = forbidden_chars.sub('', filename)
     path = os.path.join(config['output']['folder'], filename)
     return path
+
 
 if __name__ == "__main__":
     main()
