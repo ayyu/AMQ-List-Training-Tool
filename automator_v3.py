@@ -16,62 +16,37 @@ from selenium.webdriver.common.action_chains import ActionChains
 import time
 import json, yaml
 import subprocess
+import argparse
 
-def update_anime_lists(driver, anilist="", kitsu="", mal=""):
-    print("Updating AL with {}".format(anilist))
-    driver.execute_script('document.getElementById("mpNewsContainer").innerHTML = "Updating AniList...";')
+config = {}
+ext = "mp3"
+genre = "Anime"
+
+
+def update_list(driver, listType, listName=""):
     status = driver.find_element_by_id("mpNewsContainer")
+    statusText = "Updating {} with {}...".format(listType, listName)
+    print(statusText)
+    driver.execute_script('document.getElementById("mpNewsContainer").innerHTML = "{}";'.format(statusText))
     driver.execute_script("""new Listener("anime list update result", function (result) {
         if (result.success) {
-            document.getElementById("mpNewsContainer").innerHTML = "Updated Successful: " + result.message;
+            document.getElementById("mpNewsContainer").innerHTML = "Update Successful: " + result.message;
         } else {
             document.getElementById("mpNewsContainer").innerHTML = "Update Unsuccessful: " + result.message;
         }
     }).bindListener()""")
-    driver.execute_script("""
-    socket.sendCommand({
+    driver.execute_script("""socket.sendCommand({{
         type: "library",
         command: "update anime list",
-        data: {
+        data: {{
             newUsername: arguments[0],
-            listType: 'ANILIST'
-        }
-    });""", anilist)
+            listType: '{}'
+        }}
+    }});""".format(listType.upper()), listName)
     while True:
-        if status.text != "Updating AniList...":
+        if status.text != statusText:
             break
         time.sleep(0.5)
-    print("Updating Kitsu with {}".format(kitsu))
-    driver.execute_script('document.getElementById("mpNewsContainer").innerHTML = "Updating Kitsu...";')
-    driver.execute_script("""
-    socket.sendCommand({
-        type: "library",
-        command: "update anime list",
-        data: {
-            newUsername: arguments[0],
-            listType: 'KITSU'
-        }
-    });""", kitsu)
-    while True:
-        if status.text != "Updating Kitsu...":
-            break
-        time.sleep(0.5)
-    print("Updating MAL with {}".format(mal))
-    driver.execute_script('document.getElementById("mpNewsContainer").innerHTML = "Updating MAL...";')
-    driver.execute_script("""
-    socket.sendCommand({
-        type: "library",
-        command: "update anime list",
-        data: {
-            newUsername: arguments[0],
-            listType: 'MAL'
-        }
-    });""", mal)
-    while True:
-        if status.text != "Updating Kitsu...":
-            break
-        time.sleep(0.5)
-
 
 
 def get_question_list(driver):
@@ -101,31 +76,32 @@ def get_question_list(driver):
     return ret
 
 
-config = []
-ext = "mp3"
-genre = "Anime"
-
-def main():
+def main(configPath="config.yaml", expandJson=""):
     global config, ffmpeg
-    config = yaml.safe_load(open("config.yaml"))
+    config = yaml.safe_load(open(configPath))
     if not config['ffmpeg']:
         config['ffmpeg'] = 'ffmpeg'
     if not config['output']['folder']:
         config['output']['folder'] = './'
-    # log in to AMQ
-    driver = webdriver.Firefox(executable_path='geckodriver/geckodriver')
-    driver.get('https://animemusicquiz.com')
-    driver.find_element_by_id("loginUsername").send_keys(config['user']['name'])
-    driver.find_element_by_id("loginPassword").send_keys(config['user']['password'])
-    driver.find_element_by_id("loginButton").click()
-    time.sleep(10)
-    # socket commands to update lists and load expand
-    update_anime_lists(driver, config['list']['anilist'], config['list']['kitsu'], config['list']['mal'])
-    questions = get_question_list(driver)
-    driver.execute_script("options.logout();")
-    driver.close()
-    if (not questions):
-        return
+    if not expandJson:
+        # log in to AMQ
+        driver = webdriver.Firefox(executable_path='geckodriver/geckodriver')
+        driver.get('https://animemusicquiz.com')
+        driver.find_element_by_id("loginUsername").send_keys(config['user']['name'])
+        driver.find_element_by_id("loginPassword").send_keys(config['user']['password'])
+        driver.find_element_by_id("loginButton").click()
+        time.sleep(10)
+        # socket commands to update lists and load expand
+        for listType, listName in config['list'].iteritems():
+            update_list(driver, listType=listType, listName=listName)
+        questions = get_question_list(driver)
+        driver.execute_script("options.logout();")
+        driver.close()
+        if (not questions):
+            return
+    else:
+        jsonFile = open(expandJson)
+        questions = json.load(jsonFile)
     # download songs from socket response
     for question in questions:
         anime = {
@@ -136,9 +112,6 @@ def main():
         for song in songs:
             save(anime, song)
 
-# workaround to avoid utf8/ascii problems
-def sys_encode(input):
-    return input.encode(sys.getfilesystemencoding())
 
 def save(anime, song):
     format = ""
@@ -181,7 +154,9 @@ def save(anime, song):
         "-metadata", 'album="%s"' % anime['name'],
         '"%s"' % outputPath
     ]
-    subprocess.call(sys_encode(" ".join(command + audioFlags + metaFlags)))
+    print(metaFlags)
+    proc = u' '.join(command + audioFlags + metaFlags)
+    subprocess.call(proc.encode(sys.getfilesystemencoding(), errors='ignore'))
     return
 
 
@@ -197,12 +172,15 @@ def build_output_path(anime, song):
         'songArtist': song['artist'],
         'ext': ext
     }
-    tokens = {k: sys_encode(v) for k, v in tokens.iteritems()}
-    filename = config['output']['filename'].format(**tokens)
+    filename = config['output']['filename'].decode('utf-8').format(**tokens)
     filename = forbidden_chars.sub('', filename)
     path = os.path.join(config['output']['folder'], filename)
     return path
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--config', '-c', type=str, default='config.yaml', help='path to yaml config file')
+    parser.add_argument('--expand', '-e', type=str, help='path to expand json dump')
+    args = parser.parse_args()
+    main(args.config, args.expand)
