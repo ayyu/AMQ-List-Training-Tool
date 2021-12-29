@@ -1,0 +1,16 @@
+user:
+  name: ""
+  password: ""
+list:
+  mal: ""
+  anilist: ""
+  kitsu: ""
+ffmpeg: "ffmpeg"
+output:
+  folder: "./output/"
+  filename: "[{animeID}] {animeName}/{songType}.{songNumber}. {songName}.{ext}"
+
+# available filename tokens:
+# {animeID}, {animeName}
+# {songID}, {songName}, {songArtist}, {songType}, {songNumber}
+# {ext}
