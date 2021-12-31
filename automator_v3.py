@@ -166,7 +166,7 @@ def build_output_path(
     outDir: str,
     nameFormat: str) -> str:
   forbidden_re = re.compile(r'<|>|:|\"|\||\?|\*|&|\^|\$|' + '\0')
-  field_chars_re = re.compile(r'\.\.\.|\.\.|' + '\0')
+  field_chars_re = re.compile(r'\.\.\.|\.\.|\/|' + '\0')
   tokens = {
     'animeID':    anime['annId'],
     'animeName':  field_chars_re.sub('', anime['name']),
