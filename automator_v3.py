@@ -165,7 +165,7 @@ def build_output_path(
     song: typing.Dict[str, typing.Any],
     outDir: str,
     nameFormat: str) -> str:
-  forbidden_re = re.compile(r'<|>|:|\||\?|\*|&|\^|\$|' + '\0')
+  forbidden_re = re.compile(r'<|>|:|\"|\||\?|\*|&|\^|\$|' + '\0')
   field_chars_re = re.compile(r'\.\.\.|\.\.|' + '\0')
   tokens = {
     'animeID':    anime['annId'],
