@@ -75,7 +75,7 @@ def get_question_list(driver: object) -> typing.Union[list, None]:
     time.sleep(0.5)
   time.sleep(3)
   pure_string = driver.execute_script('return expandLibrary.tackyVariable')
-  driver.execute_script('expandLibrary.tackyVariable = ''')
+  driver.execute_script("expandLibrary.tackyVariable = ''")
   if not pure_string:
     return
   questions = json.loads(pure_string)
