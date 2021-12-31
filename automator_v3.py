@@ -127,7 +127,8 @@ def save(
     if song['versions']['open']['catbox'][key] == 1:
       format = key
       break
-  if not format: return
+  try: format
+  except NameError: return
   outputPath = build_output_path(
     anime, song,
     config['output']['folder'],
@@ -178,6 +179,7 @@ def build_output_path(
   path = os.path.join(
     outDir,
     forbidden_re.sub('', nameFormat.format(**tokens)))
+  return path
   basename = os.path.basename(path)
   basename = basename[:maxFilenameLength-extLength] + basename[-extLength:]
   dirname = os.path.dirname(path)
