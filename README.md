@@ -9,9 +9,7 @@ I've only tested this on Windows so far.
 - moved to python 3 to avoid unicode shenanigans
 - transcodes webms to mp3 if an mp3 is unavailable
 - yaml config file
-- fixed unicode/ascii issue with subprocess if invalid chars were in the command
 - no more sqlite db, only checks if file already exists
-- shebang for python2
 - added ability to update MAL
 - configurable output naming format
 
