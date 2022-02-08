@@ -12,7 +12,6 @@ I've only tested this on Windows so far.
 - fixed unicode/ascii issue with subprocess if invalid chars were in the command
 - no more sqlite db, only checks if file already exists in directory structure
 - shebang for python3
-- no more sqlite db, only checks if file already exists
 - added ability to update MAL
 - configurable output naming format
 
