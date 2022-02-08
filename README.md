@@ -10,8 +10,8 @@ I've only tested this on Windows so far.
 - transcodes webms to mp3 if an mp3 is unavailable
 - yaml config file
 - fixed unicode/ascii issue with subprocess if invalid chars were in the command
-- no more sqlite db, only checks if file already exists
-- shebang for python2
+- no more sqlite db, only checks if file already exists in directory structure
+- shebang for python3
 - added ability to update MAL
 - configurable output naming format
 

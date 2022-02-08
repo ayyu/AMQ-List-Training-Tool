@@ -8,7 +8,7 @@ list:
 ffmpeg: "ffmpeg"
 output:
   folder: "./output/"
-  filename: "[{animeID}] {animeName}/{songType}.{songNumber}. {songName}.{ext}"
+  filename: "{animeName} [{animeID}]/{songType}.{songNumber}. {songName}.{ext}"
 
 # available filename tokens:
 # {animeID}, {animeName}
