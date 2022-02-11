@@ -22,6 +22,7 @@ import yaml
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.service import Service
+from selenium.webdriver.firefox.options import Options
 
 ext = 'mp3'
 genre = 'Anime'
@@ -92,7 +93,10 @@ def main(
   config['output']['folder'] = config['output'].get('folder', './output/')
   if not loadPath:
     # log in to AMQ
-    driver = webdriver.Firefox(service=Service('geckodriver/geckodriver'))
+    options = Options()
+    if config.get('firefox', False):
+      options.binary_location = config.get('firefox')
+    driver = webdriver.Firefox(options=options,  service=Service('geckodriver/geckodriver'))
     driver.get('https://animemusicquiz.com')
     driver.find_element(By.ID, 'loginUsername').send_keys(config['user']['name'])
     driver.find_element(By.ID, 'loginPassword').send_keys(config['user']['password'])
