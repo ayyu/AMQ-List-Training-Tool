@@ -1,13 +1,18 @@
 #!/usr/bin/env python3
  
-'''
-This module downloads a lot of songs from anime music quiz
-Dependencies:
-selenium
-geckodriver
-pyyaml
-Firefox
-ffmpeg
+'''AMQ List Downloader
+
+This Python 3 module downloads songs from all availble shows on a user's list from Anime Music Quiz's Expand Library.
+
+Python dependencies:
+  pyyaml
+  selenium
+
+Other dependencies:
+  geckodriver
+  Firefox
+  ffmpeg
+
 '''
 
 import argparse
@@ -96,7 +101,7 @@ def main(
     options = Options()
     if config.get('firefox', False):
       options.binary_location = config.get('firefox')
-    driver = webdriver.Firefox(options=options,  service=Service('geckodriver/geckodriver'))
+    driver = webdriver.Firefox(options=options,  service=Service('vendor/geckodriver'))
     driver.get('https://animemusicquiz.com')
     driver.find_element(By.ID, 'loginUsername').send_keys(config['user']['name'])
     driver.find_element(By.ID, 'loginPassword').send_keys(config['user']['password'])

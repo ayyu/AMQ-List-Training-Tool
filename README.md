@@ -1,30 +1,41 @@
 # AMQ List Training Tool
 
-A tool which downloads all available mp3s and stores them with new metadata indicating what song it is and where it belongs.
+A tool which downloads all available MP3 files from Expand Library for the specified list(s),
+storing them with new metadata indicating what song it is and which entry it belongs to.
 
-I've only tested this on Windows so far.
+I've only tested this on Windows so far, but other users have reported it working on Linux.
 
 ## Changes from the original version
 
-- moved to python 3 to avoid unicode shenanigans
-- transcodes webms to mp3 if an mp3 is unavailable
-- yaml config file
-- fixed unicode/ascii issue with subprocess if invalid chars were in the command
-- no more sqlite db, only checks if file already exists in directory structure
-- shebang for python3
-- added ability to update MAL
-- configurable output naming format
+- Moved to Python 3
+  - Avoids cross-platform Unicode shenanigans
+- Transcodes WebMs to MP3 if an MP3 is unavailable
+- Config file changed to use YAML
+  - Configurable output naming format
+- No more sqlite database. The only duplicate check is if the file already exists in directory structure.
+  - If you change your naming scheme, it will redownload files you already have.
+- Shebang for python3
+- Added ability to update MAL
 
 ## Requirements
 
 - Python 3
-  - install required modules with `pip install selenium pyyaml` after installing python
-- geckodriver.exe
-  - get it [here](https://github.com/mozilla/geckodriver/releases) for your platform
-  - put this in the `geckodriver` folder
+  - Install required modules with `pip install selenium pyyaml` after installing python
+- `geckodriver.exe`
+  - Get it [here](https://github.com/mozilla/geckodriver/releases) for your platform
+  - Put this in the `./vendor/` folder
 - Firefox
-- ffmpeg
-  - install this however you want
-  - if you didn't add ffmpeg to PATH, put the path to your ffmpeg.exe in the config.yaml
+  - If you get an error that says:
+
+    ```sh
+    Expected browser binary location, but unable to find binary in default location,
+    no 'moz:firefoxOptions.binary' capability provided, and no binary flag set on the command line`,
+    ```
+
+  you can specify your Firefox install location by adding an option to the `config.yaml`: `firefox: "PATH TO FIREFOX"`
+- `ffmpeg`
+  - Install binaries for this however you want
+  - If you didn't add `ffmpeg` to your PATH, put the path to your `ffmpeg.exe` in the `config.yaml`
     - e.g. `ffmpeg: "C:/bin/ffmpeg.exe"` if your copy of ffmpeg is stored there
-  - if you added it to your PATH, you can leave it as `ffmpeg: "ffmpeg"`
+    - If you want, you can place the copy of `ffmpeg.exe` in the `./vendor/` folder and set `ffmpeg: "./vendor/ffmpeg.exe"`
+  - If you added it to your PATH, you can leave it as `ffmpeg: "ffmpeg"`, or just remove that line entirely
