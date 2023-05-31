@@ -128,4 +128,4 @@ dmypy.json
 #local stuff
 automator.config
 out/
-geckodriver/geckodriver.exe
+vendor/geckodriver.exe
