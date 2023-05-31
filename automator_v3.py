@@ -1,13 +1,18 @@
 #!/usr/bin/env python3
- 
-'''
-This module downloads a lot of songs from anime music quiz
-Dependencies:
-selenium
-geckodriver
-pyyaml
-Firefox
-ffmpeg
+
+'''AMQ List Downloader
+
+This Python 3 module downloads songs from all availble shows on a user's list from Anime Music Quiz's Expand Library.
+
+Python dependencies:
+  pyyaml
+  selenium
+
+Other dependencies:
+  geckodriver
+  Firefox
+  ffmpeg
+
 '''
 
 import argparse
@@ -22,6 +27,7 @@ import yaml
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.service import Service
+from selenium.webdriver.firefox.options import Options
 
 ext = 'mp3'
 genre = 'Anime'
@@ -29,7 +35,7 @@ maxFilenameLength = 127
 extLength = len(ext)+1
 
 def update_list(
-    driver: object,
+    driver: webdriver.Firefox,
     listType: str,
     listName: str = '') -> None:
   status = driver.find_element(By.ID, 'mpNewsContainer')
@@ -57,7 +63,7 @@ def update_list(
     time.sleep(0.5)
 
 
-def get_question_list(driver: object) -> typing.Union[list, None]:
+def get_question_list(driver: webdriver.Firefox) -> typing.Union[list, None]:
   driver.execute_script("document.getElementById('mpNewsContainer').innerHTML = 'Loading Expand...';")
   script ='''new Listener('expandLibrary questions', function (payload) {
     expandLibrary.tackyVariable = (JSON.stringify(payload.questions));
@@ -86,13 +92,18 @@ def get_question_list(driver: object) -> typing.Union[list, None]:
 def main(
     configPath: str = 'config.yaml',
     loadPath: str = '',
-    dumpPath: str = '') -> None:
+    dumpPath: str = '',
+    downloadTypes: typing.List[int] = [1, 2, 3]) -> None:
+  print(downloadTypes)
   config = yaml.safe_load(open(configPath))
   config['ffmpeg'] = config.get('ffmpeg', 'ffmpeg')
   config['output']['folder'] = config['output'].get('folder', './output/')
   if not loadPath:
     # log in to AMQ
-    driver = webdriver.Firefox(service=Service('geckodriver/geckodriver'))
+    options = Options()
+    if config.get('firefox', False):
+      options.binary_location = config.get('firefox')
+    driver = webdriver.Firefox(options=options,  service=Service('vendor/geckodriver'))
     driver.get('https://animemusicquiz.com')
     driver.find_element(By.ID, 'loginUsername').send_keys(config['user']['name'])
     driver.find_element(By.ID, 'loginPassword').send_keys(config['user']['password'])
@@ -116,19 +127,22 @@ def main(
     for song in question['songs']: save(
       {'annId': question['annId'],
       'name': question['name']},
-      song, config)
+      song, config, downloadTypes)
 
 
 def save(
     anime: typing.Dict[str, str],
     song: typing.Dict[str, typing.Any],
-    config: typing.Dict[str, typing.Any]) -> None:
+    config: typing.Dict[str, typing.Any],
+    downloadTypes: typing.List[int]) -> None:
+  if not song['type'] in downloadTypes:
+    return
+  format = ''
   for key in ['mp3', '480', '720']:
     if song['versions']['open']['catbox'][key] == 1:
       format = key
       break
-  try: format
-  except NameError: return
+  if not format: return
   outputPath = build_output_path(
     anime, song,
     config['output']['folder'],
@@ -180,16 +194,12 @@ def build_output_path(
     outDir,
     forbidden_re.sub('', nameFormat.format(**tokens)))
   return path
-  basename = os.path.basename(path)
-  basename = basename[:maxFilenameLength-extLength] + basename[-extLength:]
-  dirname = os.path.dirname(path)
-  return os.path.join(basename, dirname)
-
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser()
   parser.add_argument('--config', '-c', type=str, default='config.yaml', help='path to yaml config file')
   parser.add_argument('--load', '-l', type=str, help='path to load expand json and skip login')
   parser.add_argument('--dump', '-d', type=str, help='path to dump expand dump')
+  parser.add_argument('--types', '-t', type=int, nargs='+', default=[1, 2, 3], help='which song types to download')
   args = parser.parse_args()
-  main(args.config, args.load, args.dump)
+  main(args.config, args.load, args.dump, args.types)
